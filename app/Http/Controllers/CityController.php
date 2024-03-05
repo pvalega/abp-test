@@ -7,7 +7,9 @@ use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use App\Mail\SendEmail;
 
 class CityController extends Controller
 {
@@ -156,15 +158,17 @@ class CityController extends Controller
 
             DB::beginTransaction();
 
-            $cities = City::create([
+            $city = City::create([
                 'name' => strtoupper($request->city),
                 'data' => strtoupper($request->miTextarea),
                 'user_id' => Auth::user()->id,
             ]);
 
-            if ($cities) {
+            if ($city) {
                 DB::commit();
-                return response()->json(['res' => $cities]);
+                $data = ['message' => 'Ciudad '. $city->name .' Creada'];
+                Mail::to(Auth::user()->email)->send(new SendEmail($data));
+                return response()->json(['res' => $city]);
             } else {
                 DB::rollbackTransaction();
                 return response()->json(['err' => 'Ciudad no pudo ser registrada']);
@@ -176,12 +180,17 @@ class CityController extends Controller
 
     public function destroy($id){
 
-        $res=City::where('id',$id)->delete();
-
-        if($res){
-            return response()->json(['res' => 'Elimineado']);
-        }else{
-            return response()->json(['err' => 'Ciudad no se ha podido eliminar']);
+        $city= City::where('id',$id)->first();
+        try {
+            if ($city->delete()) {
+                $data = ['message' => 'Ciudad '.$city->name .' Eliminada'];
+                Mail::to(Auth::user()->email)->send(new SendEmail($data));
+                return response()->json(['res' => 'Elimineado']);
+            } else {
+                return response()->json(['err' => 'Ciudad no se ha podido eliminar']);
+            }
+        } catch (Exception $e) {
+            return response()->json(['err' => $e]);
         }
     }
 

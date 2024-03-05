@@ -1,5 +1,8 @@
 <?php
 
+use App\Mail\SendEmail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,4 +38,7 @@ Route::get('/getinfo-city/{city}/{country}', [App\Http\Controllers\CityControlle
 Route::get('/mis-ciudades', [App\Http\Controllers\CityController::class, 'ciudades']);
 
 //Route::delete('/info-city/{cityId]', [App\Http\Controllers\CityController::class, 'delete']);
+
+
+
 
